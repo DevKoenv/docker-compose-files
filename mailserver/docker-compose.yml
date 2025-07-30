@@ -1,0 +1,52 @@
+services:
+  postfix:
+    build: .
+    restart: always
+    ports:
+      - "587:587"                                         # Submission port only
+    volumes:
+      - dokploy-certs:/etc/ssl/postfix:ro
+      - ./data/dkim-keys:/etc/opendkim/keys
+      # Manage this volume via dokploy volumes (File Mount)
+      - ../../files/etc/postfix/users.txt:/etc/postfix/users.txt:ro
+      # For local development you can use the volume below
+      # - ./data/postfix/users.txt:/etc/postfix/users.txt:ro
+
+    environment:
+      # Basic hostname
+      - POSTFIX_myhostname=${POSTFIX_myhostname}                      # Your mail server's FQDN
+      - ALLOWED_SENDER_DOMAINS=${ALLOWED_SENDER_DOMAINS}              # Comma-separated list of allowed sender domains for outbound mail
+
+      # TLS settings
+      - POSTFIX_smtpd_tls_cert_file=/etc/ssl/postfix/${POSTFIX_myhostname}/certificate.crt
+      - POSTFIX_smtpd_tls_key_file=/etc/ssl/postfix/${POSTFIX_myhostname}/privatekey.key
+      - POSTFIX_smtpd_tls_security_level=encrypt                      # Enforce TLS encryption
+      - POSTFIX_smtpd_tls_auth_only=yes                               # Only allow SASL auth over TLS
+
+      # SASL authentication
+      - POSTFIX_smtpd_sasl_auth_enable=yes                            # Enable SASL auth
+      - POSTFIX_smtpd_sasl_security_options=noanonymous               # Disable anonymous auth
+      - POSTFIX_smtpd_sasl_type=cyrus                                 # Use Cyrus SASL backend
+
+      # SMTP restrictions — only allow authenticated users, reject others
+      - POSTFIX_smtpd_relay_restrictions=permit_sasl_authenticated,reject
+      - POSTFIX_smtpd_sender_restrictions=permit_sasl_authenticated,check_sender_access lmdb:/etc/postfix/allowed_senders,reject
+      - POSTFIX_smtpd_recipient_restrictions=permit_sasl_authenticated,reject
+      - POSTFIX_smtpd_helo_restrictions=permit_sasl_authenticated,reject_invalid_helo_hostname,reject
+      - POSTFIX_smtpd_client_restrictions=permit_sasl_authenticated,permit_mynetworks,reject_non_fqdn_hostname,reject_invalid_hostname,reject
+
+      # Message size limit
+      - POSTFIX_message_size_limit=10485760                           # 10MB max message size
+
+      # Logging
+      - LOG_FORMAT=plain                                              # Modern log format for production
+
+      # DKIM settings
+      - DKIM_AUTOGENERATE=true                                        # Automatically generate DKIM keys
+      - DKIM_SELECTOR=email                                           # DKIM selector (default: 'mail', script uses 'email' regardless of this setting)
+
+
+volumes:
+  dokploy-certs:
+    name: dokploy-certs
+    external: true

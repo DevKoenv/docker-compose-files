@@ -1,0 +1,6 @@
+.env
+data/dkim-keys/*
+data/postfix/*
+!data/dkim-keys/.gitkeep
+!data/postfix/.gitkeep
+!users.txt.example
