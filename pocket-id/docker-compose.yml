@@ -1,0 +1,36 @@
+services:
+  pocket-id:
+    image: ghcr.io/pocket-id/pocket-id:v1
+    restart: unless-stopped
+    environment:
+      # ----------------------
+      # Network & Security
+      # ----------------------
+      APP_URL: ${APP_URL:-"https://auth.pocketid.local"}
+      TRUST_PROXY: ${TRUST_PROXY:-"true"}
+
+      # ----------------------
+      # Encryption Key
+      # ----------------------
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-"put_a_32_char_random_secret_here"}
+
+      # ----------------------
+      # Database Connection (PostgreSQL)
+      # ----------------------
+      DB_PROVIDER: ${DB_PROVIDER}
+      DB_CONNECTION_STRING: ${DB_CONNECTION_STRING}
+
+      # ----------------------
+      # Logging & Analytics
+      # ----------------------
+      LOG_JSON: ${LOG_JSON:-"true"}
+      ANALYTICS_DISABLED: "true"
+
+    volumes:
+      - ./GeoLite2-City.mmdb:/app/data/GeoLite2-City.mmdb
+    healthcheck:
+      test: ["CMD", "/app/pocket-id", "healthcheck"]
+      interval: 1m30s
+      timeout: 5s
+      retries: 2
+      start_period: 10s
