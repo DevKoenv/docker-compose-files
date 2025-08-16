@@ -3,7 +3,7 @@ services:
     image: headscale/headscale:stable
     restart: unless-stopped
     volumes:
-      - ../files/etc/headscale/config.yaml:/etc/headscale/config.yaml # Dokploy mount
+      - ../../files/etc/headscale/config.yaml:/etc/headscale/config.yaml # Dokploy mount
       - ./lib:/var/lib/headscale
       - ./run:/var/run/headscale
     command: serve
