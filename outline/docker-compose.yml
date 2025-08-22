@@ -47,17 +47,8 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD}
       SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL}
       SMTP_SECURE: ${SMTP_SECURE}
-
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.outline.rule=Host(`${APP_DOMAIN}`)"
-      - "traefik.http.routers.outline.entrypoints=websecure"
-      - "traefik.http.routers.outline.tls=true"
-      - "traefik.http.services.outline.loadbalancer.server.port=3000"
     volumes:
       - ./data:/var/lib/outline/data
-    networks:
-      - proxy
 
   redis:
     image: redis:latest
@@ -65,13 +56,6 @@ services:
     command: redis-server --appendonly yes
     volumes:
       - redis_data-outline:/data
-    networks:
-      - proxy
 
 volumes:
   redis_data-outline:
-
-networks:
-  proxy:
-    external: true
-    name: proxy
