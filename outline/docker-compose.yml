@@ -49,6 +49,8 @@ services:
       SMTP_SECURE: ${SMTP_SECURE}
     volumes:
       - ./data:/var/lib/outline/data
+    networks:
+      - default
 
   redis:
     image: redis:latest
