@@ -59,7 +59,3 @@ services:
 
 volumes:
   redis_data-outline:
-
-networks:
-  dokploy-network:
-    external: true
