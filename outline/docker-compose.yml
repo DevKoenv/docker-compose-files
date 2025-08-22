@@ -1,0 +1,77 @@
+services:
+  outline:
+    image: outlinewiki/outline:latest
+    restart: always
+    depends_on:
+      - redis
+    ports:
+      - 3000
+    environment:
+      NODE_ENV: production
+      # ----------------------
+      # Application
+      # ----------------------
+      APP_PROTOCOL: ${APP_PROTOCOL}
+      APP_DOMAIN: ${APP_DOMAIN}
+      URL: ${URL}
+      SECRET_KEY: ${SECRET_KEY}
+      UTILS_SECRET: ${UTILS_SECRET}
+
+      # ----------------------
+      # Database (PostgreSQL)
+      # ----------------------
+      DATABASE_URL: postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}
+      PGSSLMODE: disable
+
+      # ----------------------
+      # Redis
+      # ----------------------
+      REDIS_URL: redis://redis:6379
+
+      # ----------------------
+      # OIDC
+      # ----------------------
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
+      OIDC_AUTH_URI: ${OIDC_AUTH_URI}
+      OIDC_TOKEN_URI: ${OIDC_TOKEN_URI}
+      OIDC_USERINFO_URI: ${OIDC_USERINFO_URI}
+      OIDC_LOGOUT_URI: ${OIDC_LOGOUT_URI}
+
+      # ----------------------
+      # Email (SMTP)
+      # ----------------------
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USERNAME: ${SMTP_USERNAME}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL}
+      SMTP_SECURE: ${SMTP_SECURE}
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.outline.rule=Host(`${APP_DOMAIN}`)"
+      - "traefik.http.routers.outline.entrypoints=websecure"
+      - "traefik.http.routers.outline.tls=true"
+      - "traefik.http.services.outline.loadbalancer.server.port=3000"
+    volumes:
+      - ./data:/var/lib/outline/data
+    networks:
+      - proxy
+
+  redis:
+    image: redis:latest
+    restart: always
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data-outline:/data
+    networks:
+      - proxy
+
+volumes:
+  redis_data-outline:
+
+networks:
+  proxy:
+    external: true
+    name: proxy
