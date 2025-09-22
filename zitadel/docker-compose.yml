@@ -1,7 +1,7 @@
 services:
-  zitadel-init:
+  zitadel:
     image: "ghcr.io/zitadel/zitadel:v4.2.2"
-    command: "init"
+    command: 'start-from-init --masterkeyFromEnv'
     environment:
       ZITADEL_MASTERKEY: "${ZITADEL_MASTERKEY}"
       ZITADEL_EXTERNALDOMAIN: "${ZITADEL_EXTERNALDOMAIN}"
@@ -31,6 +31,11 @@ services:
       ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_NAME: Automatically Initialized IAM Login Client
       ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_PAT_EXPIRATIONDATE: "2029-01-01T00:00:00Z"
 
+      # runtime / start options
+      ZITADEL_EXTERNALPORT: "${ZITADEL_EXTERNALPORT}"
+      ZITADEL_EXTERNALSECURE: "${ZITADEL_EXTERNALSECURE}"
+      ZITADEL_TLS_ENABLED: "${ZITADEL_TLS_ENABLED}"
+
     healthcheck:
       test: ["CMD", "/app/zitadel", "ready"]
       interval: "10s"
@@ -41,21 +46,7 @@ services:
       - "./app-data:/app-data:rw"
     networks:
       - default
-
-  zitadel:
-    extends:
-      service: zitadel-init
-    command: 'start-from-setup --masterkeyFromEnv'
-    environment:
-      ZITADEL_MASTERKEY: "${ZITADEL_MASTERKEY}"
-      ZITADEL_EXTERNALPORT: "${ZITADEL_EXTERNALPORT}"
-      ZITADEL_EXTERNALSECURE: "${ZITADEL_EXTERNALSECURE}"
-      ZITADEL_TLS_ENABLED: "${ZITADEL_TLS_ENABLED}"
-    depends_on:
-      zitadel-init:
-        condition: "service_completed_successfully"
-    networks:
-      - default
+      - dokploy-network
 
   login:
     restart: "unless-stopped"
