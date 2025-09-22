@@ -43,10 +43,9 @@ services:
       retries: 5
       start_period: "10s"
     volumes:
-      - "./app-data:/app-data:rw"
+      - "app-data:/app-data:rw"
     networks:
       - default
-      - dokploy-network
 
   login:
     restart: "unless-stopped"
@@ -57,9 +56,12 @@ services:
       - ZITADEL_SERVICE_USER_TOKEN_FILE=/app-data/login-client.pat
       - CUSTOM_REQUEST_HEADERS=Host:${ZITADEL_EXTERNALDOMAIN}
     volumes:
-      - "./app-data:/app-data:ro"
+      - "app-data:/app-data:ro"
     depends_on:
       zitadel:
         condition: "service_healthy"
     networks:
       - default
+
+volumes:
+  app-data:
