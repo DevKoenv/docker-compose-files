@@ -39,6 +39,8 @@ services:
       start_period: "10s"
     volumes:
       - "./app-data:/app-data:rw"
+    networks:
+      - default
 
   zitadel:
     extends:
@@ -52,6 +54,8 @@ services:
     depends_on:
       zitadel-init:
         condition: "service_completed_successfully"
+    networks:
+      - default
 
   login:
     restart: "unless-stopped"
@@ -66,3 +70,5 @@ services:
     depends_on:
       zitadel:
         condition: "service_healthy"
+    networks:
+      - default
