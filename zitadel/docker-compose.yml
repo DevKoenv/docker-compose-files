@@ -1,14 +1,14 @@
 services:
-  zitadel:
+  zitadel-init:
     image: "ghcr.io/zitadel/zitadel:v4.2.2"
-    command: "start-from-init --masterkeyFromEnv"
+    command: "init"
     environment:
-      ZITADEL_MASTERKEY: "${ZITADEL_MASTERKEY}"
       ZITADEL_EXTERNALDOMAIN: "${ZITADEL_EXTERNALDOMAIN}"
 
       # Database configuration (external DB)
       ZITADEL_DATABASE_POSTGRES_HOST: "${ZITADEL_DATABASE_POSTGRES_HOST}"
       ZITADEL_DATABASE_POSTGRES_PORT: "${ZITADEL_DATABASE_POSTGRES_PORT}"
+      ZITADEL_DATABASE_POSTGRES_DATABASE: "${ZITADEL_DATABASE_POSTGRES_DATABASE}"
       ZITADEL_DATABASE_POSTGRES_USER_USERNAME: "${ZITADEL_DATABASE_POSTGRES_USER_USERNAME}"
       ZITADEL_DATABASE_POSTGRES_USER_PASSWORD: "${ZITADEL_DATABASE_POSTGRES_USER_PASSWORD}"
       ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME: "${ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME}"
@@ -31,10 +31,6 @@ services:
       ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_NAME: Automatically Initialized IAM Login Client
       ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_PAT_EXPIRATIONDATE: "2029-01-01T00:00:00Z"
 
-      # runtime / start options
-      ZITADEL_EXTERNALPORT: "${ZITADEL_EXTERNALPORT}"
-      ZITADEL_EXTERNALSECURE: "${ZITADEL_EXTERNALSECURE}"
-      ZITADEL_TLS_ENABLED: "${ZITADEL_TLS_ENABLED}"
     healthcheck:
       test: ["CMD", "/app/zitadel", "ready"]
       interval: "10s"
@@ -42,17 +38,35 @@ services:
       retries: 5
       start_period: "10s"
     volumes:
-      - "./app-data:/app-data:delegated"
+      - "./app-data:/app-data:rw"
+    networks:
+      - default
+      - dokploy-network # To reach the DB running as another service
+
+  zitadel:
+    extends:
+      service: zitadel-init
+    command: "start-from-setup --masterkeyFromEnv"
+    environment:
+      ZITADEL_MASTERKEY: "${ZITADEL_MASTERKEY}"
+
+      ZITADEL_EXTERNALPORT: "${ZITADEL_EXTERNALPORT}"
+      ZITADEL_EXTERNALSECURE: "${ZITADEL_EXTERNALSECURE}"
+      ZITADEL_TLS_ENABLED: "${ZITADEL_TLS_ENABLED}"
+    depends_on:
+      zitadel-init:
+        condition: "service_completed_successfully"
     networks:
       - default
 
   login:
+    restart: "unless-stopped"
     image: "ghcr.io/zitadel/zitadel-login:latest"
     environment:
-      ZITADEL_API_URL: "http://zitadel:8080"
-      NEXT_PUBLIC_BASE_PATH: "/ui/v2/login"
-      ZITADEL_SERVICE_USER_TOKEN_FILE: "/app-data/login-client.pat"
-      CUSTOM_REQUEST_HEADERS: "Host:${ZITADEL_EXTERNALDOMAIN}"
+      - ZITADEL_API_URL=http://zitadel:8080
+      - NEXT_PUBLIC_BASE_PATH=/ui/v2/login
+      - ZITADEL_SERVICE_USER_TOKEN_FILE=/app-data/login-client.pat
+      - CUSTOM_REQUEST_HEADERS=Host:${ZITADEL_EXTERNALDOMAIN}
     volumes:
       - "./app-data:/app-data:ro"
     depends_on:
