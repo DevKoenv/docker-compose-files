@@ -1,7 +1,7 @@
 services:
   zitadel:
     image: "ghcr.io/zitadel/zitadel:v4.2.2"
-    command: 'start-from-init --masterkeyFromEnv'
+    command: "start-from-init --masterkeyFromEnv"
     environment:
       ZITADEL_MASTERKEY: "${ZITADEL_MASTERKEY}"
       ZITADEL_EXTERNALDOMAIN: "${ZITADEL_EXTERNALDOMAIN}"
@@ -35,7 +35,6 @@ services:
       ZITADEL_EXTERNALPORT: "${ZITADEL_EXTERNALPORT}"
       ZITADEL_EXTERNALSECURE: "${ZITADEL_EXTERNALSECURE}"
       ZITADEL_TLS_ENABLED: "${ZITADEL_TLS_ENABLED}"
-
     healthcheck:
       test: ["CMD", "/app/zitadel", "ready"]
       interval: "10s"
@@ -43,25 +42,21 @@ services:
       retries: 5
       start_period: "10s"
     volumes:
-      - "app-data:/app-data:rw"
+      - "./app-data:/app-data"
     networks:
       - default
 
   login:
-    restart: "unless-stopped"
     image: "ghcr.io/zitadel/zitadel-login:latest"
     environment:
-      - ZITADEL_API_URL=http://zitadel:8080
-      - NEXT_PUBLIC_BASE_PATH=/ui/v2/login
-      - ZITADEL_SERVICE_USER_TOKEN_FILE=/app-data/login-client.pat
-      - CUSTOM_REQUEST_HEADERS=Host:${ZITADEL_EXTERNALDOMAIN}
+      ZITADEL_API_URL: "http://zitadel:8080"
+      NEXT_PUBLIC_BASE_PATH: "/ui/v2/login"
+      ZITADEL_SERVICE_USER_TOKEN_FILE: "/app-data/login-client.pat"
+      CUSTOM_REQUEST_HEADERS: "Host:${ZITADEL_EXTERNALDOMAIN}"
     volumes:
-      - "app-data:/app-data:ro"
+      - "./app-data:/app-data"
     depends_on:
       zitadel:
         condition: "service_healthy"
     networks:
       - default
-
-volumes:
-  app-data:
