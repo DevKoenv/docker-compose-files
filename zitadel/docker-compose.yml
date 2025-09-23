@@ -1,8 +1,13 @@
 services:
-  zitadel-init:
+  zitadel:
     image: "ghcr.io/zitadel/zitadel:v4.2.2"
-    command: "init"
+    command: "start-from-init --masterkeyFromEnv"
     environment:
+      ZITADEL_MASTERKEY: "${ZITADEL_MASTERKEY}"
+
+      ZITADEL_EXTERNALPORT: "${ZITADEL_EXTERNALPORT}"
+      ZITADEL_EXTERNALSECURE: "${ZITADEL_EXTERNALSECURE}"
+      ZITADEL_TLS_ENABLED: "${ZITADEL_TLS_ENABLED}"
       ZITADEL_EXTERNALDOMAIN: "${ZITADEL_EXTERNALDOMAIN}"
 
       # Database configuration (external DB)
@@ -39,23 +44,6 @@ services:
       start_period: "10s"
     volumes:
       - "./app-data:/app-data:rw"
-    networks:
-      - default
-      - dokploy-network # To reach the DB running as another service
-
-  zitadel:
-    extends:
-      service: zitadel-init
-    command: "start-from-setup --masterkeyFromEnv"
-    environment:
-      ZITADEL_MASTERKEY: "${ZITADEL_MASTERKEY}"
-
-      ZITADEL_EXTERNALPORT: "${ZITADEL_EXTERNALPORT}"
-      ZITADEL_EXTERNALSECURE: "${ZITADEL_EXTERNALSECURE}"
-      ZITADEL_TLS_ENABLED: "${ZITADEL_TLS_ENABLED}"
-    depends_on:
-      zitadel-init:
-        condition: "service_completed_successfully"
     networks:
       - default
 
