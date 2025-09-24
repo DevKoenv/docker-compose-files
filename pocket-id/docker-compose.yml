@@ -1,6 +1,7 @@
 services:
   pocket-id:
     image: ghcr.io/pocket-id/pocket-id:v1
+    pull_policy: always
     restart: unless-stopped
     environment:
       # ----------------------
