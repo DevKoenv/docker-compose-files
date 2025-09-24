@@ -26,8 +26,6 @@ services:
       LOG_JSON: ${LOG_JSON:-"true"}
       ANALYTICS_DISABLED: "true"
 
-    volumes:
-      - ./GeoLite2-City.mmdb:/app/data/GeoLite2-City.mmdb
     healthcheck:
       test: ["CMD", "/app/pocket-id", "healthcheck"]
       interval: 1m30s
