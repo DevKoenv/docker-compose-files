@@ -1,6 +1,7 @@
 services:
   outline:
     image: outlinewiki/outline:latest
+    pull_policy: always
     restart: always
     depends_on:
       - redis
@@ -47,6 +48,14 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD}
       SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL}
       SMTP_SECURE: ${SMTP_SECURE}
+
+      # ----------------------
+      # File Storage
+      # ----------------------
+      FILE_STORAGE: local
+      FILE_STORAGE_UPLOAD_MAX_SIZE: 26214400
+      FILE_STORAGE_IMPORT_MAX_SIZE: ""
+      FILE_STORAGE_WORKSPACE_IMPORT_MAX_SIZE: ""
     volumes:
       - ./data:/var/lib/outline/data
     networks:
